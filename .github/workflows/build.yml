@@ -1,0 +1,41 @@
+name: Build YTLite
+
+on:
+  workflow_dispatch:
+    inputs:
+      ipa_url:
+        description: 'Decrypted YouTube IPA URL'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download IPA
+        run: |
+          mkdir -p payload
+          curl -L "${{ github.event.inputs.ipa_url }}" -o "YouTube.ipa"
+
+      - name: Extract IPA
+        run: |
+          unzip -q YouTube.ipa -d payload
+          ls -l payload/Payload/
+
+      - name: Apply Tweaks (YTLite)
+        run: |
+          echo "✅ IPA fetched and ready for patching. You can insert custom tweaks here."
+
+      - name: Repackage IPA
+        run: |
+          cd payload
+          zip -qry ../YTLite.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v3
+        with:
+          name: YTLite
+          path: YTLite.ipa
